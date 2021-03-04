@@ -1,6 +1,8 @@
 package com.rest.find.primes.controller;
 
 import com.rest.find.primes.model.PrimeResponseEntity;
+import com.rest.find.primes.service.FindPrimeNumberService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,9 @@ import java.util.stream.IntStream;
 @RestController
 public class FindPrimesController {
 
+    @Autowired
+    FindPrimeNumberService findPrimeNumberService;
+
     /**
      * @param number
      * @return ResponseEntity
@@ -31,24 +36,7 @@ public class FindPrimesController {
     @Cacheable(value="primeResponseEntity", key = "#number")
     @ResponseBody
     public ResponseEntity<PrimeResponseEntity> findPrimes(@PathVariable Integer number){
-        List<Integer> primes = IntStream.rangeClosed(2, number)
-                .filter(n -> isNumberPrime(n))
-                .boxed()
-                .collect(Collectors.toList());
-
-        PrimeResponseEntity primeResponseEntity = new PrimeResponseEntity();
-        primeResponseEntity.setInitial(number);
-        primeResponseEntity.setPrimes(primes);
-        System.out.println("######prime numbers calculated manually");
-        return new ResponseEntity<>(primeResponseEntity, HttpStatus.ACCEPTED);
-    }
-
-    private boolean isNumberPrime(int number) {
-        if(number <= 2)
-            return number == 2;
-        else
-            return  (number % 2) != 0 && IntStream.rangeClosed(3, (int) Math.sqrt(number))
-                            .filter(n -> n % 2 != 0)
-                            .noneMatch(n -> (number % n == 0));
+        PrimeResponseEntity primeResponseEntity = findPrimeNumberService.findPrimeNumbers(number);
+        return new ResponseEntity(primeResponseEntity, HttpStatus.ACCEPTED);
     }
 }
